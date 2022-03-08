@@ -9,6 +9,8 @@ public sealed partial class SingletonGenerator
                                                        encoding: Encoding.UTF8);
         m_ParametersAttributeSourceText = SourceText.From(text: PARAMETERS_ATTRIBUTE_SOURCE,
                                                           encoding: Encoding.UTF8);
+        m_InstantiationAttributeSourceText = SourceText.From(text: INSTANTIATION_ATTRIBUTE_SOURCE,
+                                                             encoding: Encoding.UTF8);
         m_AbstractClassSourceText = SourceText.From(text: ABSTRACT_CLASS_SOURCE,
                                                     encoding: Encoding.UTF8);
     }
@@ -23,6 +25,8 @@ partial class SingletonGenerator
                           sourceText: m_DefaultAttributeSourceText);
         context.AddSource(hintName: "SingletonWithParametersAttribute.g.cs",
                           sourceText: m_ParametersAttributeSourceText);
+        context.AddSource(hintName: "SingletonWithInstantiationAttribute.g.cs",
+                          sourceText: m_InstantiationAttributeSourceText);
         context.AddSource(hintName: "Singleton.g.cs",
                           sourceText: m_AbstractClassSourceText);
     }
@@ -40,6 +44,8 @@ partial class SingletonGenerator
                                                          CSharpSyntaxTree.ParseText(text: m_DefaultAttributeSourceText,
                                                                                     options: options),
                                                          CSharpSyntaxTree.ParseText(text: m_ParametersAttributeSourceText,
+                                                                                    options: options),
+                                                         CSharpSyntaxTree.ParseText(text: m_InstantiationAttributeSourceText,
                                                                                     options: options));
         return compilation;
     }
@@ -65,13 +71,49 @@ partial class {symbol.Name} : Narumikazuchi.Singletons.Singleton
     private {symbol.Name}() : base()
     {{ }}
 
+    public static {symbol.Name} Instance
+    {{ 
+        get
+        {{
+            if (s_Instance == null)
+            {{
+                s_Instance = new {symbol.Name}();
+            }}
+            return s_Instance;
+        }}
+    }}
+
+    public static Boolean IsInstanceCreated {{ get; }} = s_Instance != null;
+
+    private static {symbol.Name} s_Instance;
+}}";
+
+        return result;
+    }
+
+    private String GenerateWithInstantiation(INamedTypeSymbol symbol)
+    {
+        String @namespace = symbol.ContainingNamespace
+                                  .ToDisplayString();
+
+        String result = $@"using System;
+
+namespace {@namespace};
+
+partial class {symbol.Name} : Narumikazuchi.Singletons.Singleton
+{{
+    private {symbol.Name}() : base()
+    {{ }}
+
     public static void CreateInstance()
     {{
         if (s_Instance == null)
         {{
-            s_Instance = new {symbol.Name}();
+            s_Instance = CreateInstanceWithParameters();
         }}
     }}
+
+    private static partial {symbol.Name} CreateInstanceWithParameters();
 
     public static {symbol.Name} Instance
     {{ 
@@ -154,9 +196,11 @@ partial class {symbol.Name} : Narumikazuchi.Singletons.Singleton
 
     private readonly SourceText m_DefaultAttributeSourceText;
     private readonly SourceText m_ParametersAttributeSourceText;
+    private readonly SourceText m_InstantiationAttributeSourceText;
     private readonly SourceText m_AbstractClassSourceText;
     private INamedTypeSymbol? m_DefaultAttribute;
     private INamedTypeSymbol? m_ParametersAttribute;
+    private INamedTypeSymbol? m_InstantiationAttribute;
 
     private const String DEFAULT_ATTRIBUTE_SOURCE = @"using System;
 
@@ -178,6 +222,16 @@ public sealed class SingletonWithParametersAttribute : Attribute
     public SingletonWithParametersAttribute()
     { }
     public SingletonWithParametersAttribute(String parameterInterface)
+    { }
+}";
+    private const String INSTANTIATION_ATTRIBUTE_SOURCE = @"using System;
+
+namespace Narumikazuchi.Singletons;
+
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+public sealed class SingletonWithInstantiationAttribute : Attribute
+{
+    public SingletonWithInstantiationAttribute()
     { }
 }";
     private const String ABSTRACT_CLASS_SOURCE = @"using System;
@@ -230,6 +284,7 @@ partial class SingletonGenerator : ISourceGenerator
 
         m_DefaultAttribute = compilation.GetTypeByMetadataName("Narumikazuchi.Singletons.SingletonAttribute");
         m_ParametersAttribute = compilation.GetTypeByMetadataName("Narumikazuchi.Singletons.SingletonWithParametersAttribute");
+        m_InstantiationAttribute = compilation.GetTypeByMetadataName("Narumikazuchi.Singletons.SingletonWithInstantiationAttribute");
 
         IEnumerable<INamedTypeSymbol> symbols = receiver.Candidates
                                                         .Select(x => GetSymbol(compilation, x));
@@ -240,6 +295,15 @@ partial class SingletonGenerator : ISourceGenerator
             {
                 context.AddSource(hintName: $"{symbol.Name}.g.cs",
                                   sourceText: SourceText.From(text: this.GenerateDefault(symbol),
+                                                              encoding: Encoding.UTF8));
+                continue;
+            }
+
+            if (symbol.TryGetAttribute(attributeType: m_InstantiationAttribute!,
+                                       attributes: out attributes))
+            {
+                context.AddSource(hintName: $"{symbol.Name}.g.cs",
+                                  sourceText: SourceText.From(text: this.GenerateWithInstantiation(symbol),
                                                               encoding: Encoding.UTF8));
                 continue;
             }
