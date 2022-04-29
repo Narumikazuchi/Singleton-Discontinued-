@@ -1,0 +1,1 @@
+Contains a source generator to generate classes according to the singleton-pattern. A detailed overview of the contents and their used can be found in the [wiki](https://github.com/Narumikazuchi/Singleton/wiki).
