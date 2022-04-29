@@ -113,7 +113,7 @@ partial class {symbol.Name} : Narumikazuchi.Singletons.Singleton
         }}
     }}
 
-    private static partial {symbol.Name} CreateInstanceWithParameters();
+    private static partial {symbol.Name} CreateInstanceInternal();
 
     public static {symbol.Name} Instance
     {{ 
