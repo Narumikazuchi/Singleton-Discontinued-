@@ -8,6 +8,7 @@
     <Authors>Narumikazuchi</Authors>
     <Description>Contains a source generator to generate classes according to the singleton-pattern. A detailed overview of the contents and their used can be found in the [wiki](https://github.com/Narumikazuchi/Singleton/wiki).</Description>
     <Copyright>©2022 Narumikazuchi</Copyright>
+	<PackageLicenseFile>LICENSE</PackageLicenseFile>
     <RepositoryUrl>https://github.com/Narumikazuchi/Singleton</RepositoryUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>1.0.0-prerelease</Version>
@@ -15,6 +16,7 @@
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <PackageProjectUrl>https://github.com/Narumikazuchi/Singleton/wiki</PackageProjectUrl>
     <PackageTags>Singleton</PackageTags>
+	<PackageReadmeFile>README nuget.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
