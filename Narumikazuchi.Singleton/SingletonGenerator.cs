@@ -71,6 +71,9 @@ partial class {symbol.Name} : Narumikazuchi.Singletons.Singleton
     private {symbol.Name}() : base()
     {{ }}
 
+    /// <summary>
+    /// Gets the single instance of the singleton.
+    /// </summary>
     public static {symbol.Name} Instance
     {{ 
         get
@@ -83,7 +86,16 @@ partial class {symbol.Name} : Narumikazuchi.Singletons.Singleton
         }}
     }}
 
-    public static Boolean IsInstanceCreated {{ get; }} = s_Instance != null;
+    /// <summary>
+    /// Gets whether the single instance of the singleton has been created.
+    /// </summary>
+    public static Boolean IsInstanceCreated
+    {{
+        get
+        {{ 
+            return s_Instance != null;
+        }}
+    }}
 
     private static {symbol.Name} s_Instance;
 }}";
@@ -91,6 +103,11 @@ partial class {symbol.Name} : Narumikazuchi.Singletons.Singleton
         return result;
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="symbol"></param>
+    /// <returns></returns>
     private String GenerateWithInstantiation(INamedTypeSymbol symbol)
     {
         String @namespace = symbol.ContainingNamespace
@@ -105,16 +122,22 @@ partial class {symbol.Name} : Narumikazuchi.Singletons.Singleton
     private {symbol.Name}() : base()
     {{ }}
 
+    /// <summary>
+    /// Creates the single instance of the singleton.
+    /// </summary>
     public static void CreateInstance()
     {{
         if (s_Instance == null)
         {{
-            s_Instance = CreateInstanceWithParameters();
+            s_Instance = CreateInstanceInternal();
         }}
     }}
 
     private static partial {symbol.Name} CreateInstanceInternal();
 
+    /// <summary>
+    /// Gets the single instance of the singleton.
+    /// </summary>
     public static {symbol.Name} Instance
     {{ 
         get
@@ -127,7 +150,16 @@ partial class {symbol.Name} : Narumikazuchi.Singletons.Singleton
         }}
     }}
 
-    public static Boolean IsInstanceCreated {{ get; }} = s_Instance != null;
+    /// <summary>
+    /// Gets whether the single instance of the singleton has been created.
+    /// </summary>
+    public static Boolean IsInstanceCreated
+    {{
+        get
+        {{ 
+            return s_Instance != null;
+        }}
+    }}
 
     private static {symbol.Name} s_Instance;
 }}";
@@ -164,6 +196,9 @@ partial class {symbol.Name} : Narumikazuchi.Singletons.Singleton
     private {symbol.Name}() : base()
     {{ }}
 
+    /// <summary>
+    /// Creates the single instance of the singleton.
+    /// </summary>
     public static void CreateInstance({interfaceName} parameters)
     {{
         if (s_Instance == null)
@@ -174,6 +209,9 @@ partial class {symbol.Name} : Narumikazuchi.Singletons.Singleton
 
     private static partial {symbol.Name} CreateInstanceWithParameters({interfaceName} parameters);
 
+    /// <summary>
+    /// Gets the single instance of the singleton.
+    /// </summary>
     public static {symbol.Name} Instance
     {{ 
         get
@@ -186,7 +224,16 @@ partial class {symbol.Name} : Narumikazuchi.Singletons.Singleton
         }}
     }}
 
-    public static Boolean IsInstanceCreated {{ get; }} = s_Instance != null;
+    /// <summary>
+    /// Gets whether the single instance of the singleton has been created.
+    /// </summary>
+    public static Boolean IsInstanceCreated
+    {{
+        get
+        {{ 
+            return s_Instance != null;
+        }}
+    }}
 
     private static {symbol.Name} s_Instance;
 }}";
@@ -206,9 +253,15 @@ partial class {symbol.Name} : Narumikazuchi.Singletons.Singleton
 
 namespace Narumikazuchi.Singletons;
 
+/// <summary>
+/// Marks a class as a singleton.
+/// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
 public sealed class SingletonAttribute : Attribute
 {
+    /// <summary>
+    /// Default Constructor.
+    /// </summary>
     public SingletonAttribute()
     { }
 }";
@@ -216,11 +269,20 @@ public sealed class SingletonAttribute : Attribute
 
 namespace Narumikazuchi.Singletons;
 
+/// <summary>
+/// Marks a class as a singleton, which will take in parameters to instantiate.
+/// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
 public sealed class SingletonWithParametersAttribute : Attribute
 {
+    /// <summary>
+    /// Default Constructor.
+    /// </summary>
     public SingletonWithParametersAttribute()
     { }
+    /// <summary>
+    /// Default Constructor.
+    /// </summary>
     public SingletonWithParametersAttribute(String parameterInterface)
     { }
 }";
@@ -228,9 +290,15 @@ public sealed class SingletonWithParametersAttribute : Attribute
 
 namespace Narumikazuchi.Singletons;
 
+/// <summary>
+/// Marks a class as a singleton, which has a more profound custom initiation.
+/// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
 public sealed class SingletonWithInstantiationAttribute : Attribute
 {
+    /// <summary>
+    /// Default Constructor.
+    /// </summary>
     public SingletonWithInstantiationAttribute()
     { }
 }";
@@ -239,8 +307,14 @@ using System.Collections.Generic;
 
 namespace Narumikazuchi.Singletons;
 
+/// <summary>
+/// The base class of all singletons.
+/// </summary>
 public abstract class Singleton
 {
+    /// <summary>
+    /// The base constructor of all singletons.
+    /// </summary>
     protected Singleton()
     {
         String name = this.GetType()
