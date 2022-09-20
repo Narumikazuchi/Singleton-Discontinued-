@@ -30,6 +30,8 @@ partial class SingletonGenerator
 
         if (symbol is null)
         {
+            m_Generated.Clear();
+
             context.AddSource(hintName: "SingletonAttribute.g.cs",
                               sourceText: m_DefaultAttributeSourceText);
             context.AddSource(hintName: "SingletonWithParametersAttribute.g.cs",
@@ -239,6 +241,7 @@ partial class {symbol.Name} : Narumikazuchi.Singletons.Singleton
         return result;
     }
 
+    private readonly HashSet<String> m_Generated = new();
     private readonly SourceText m_DefaultAttributeSourceText;
     private readonly SourceText m_ParametersAttributeSourceText;
     private readonly SourceText m_InstantiationAttributeSourceText;
@@ -360,26 +363,31 @@ partial class SingletonGenerator : ISourceGenerator
         IEnumerable<INamedTypeSymbol> symbols = receiver.Candidates.Select(x => GetSymbol(compilation, x));
         foreach (INamedTypeSymbol symbol in symbols)
         {
-            if (symbol.TryGetAttribute(attributeType: m_DefaultAttribute!,
-                                       attributes: out IEnumerable<AttributeData> attributes))
+            if (!m_Generated.Contains(symbol.Name) &&
+                symbol.TryGetAttribute(attributeType: m_DefaultAttribute!,
+                                       attributes: out _))
             {
                 context.AddSource(hintName: $"{symbol.Name}.g.cs",
                                   sourceText: SourceText.From(text: this.GenerateDefault(symbol),
                                                               encoding: Encoding.UTF8));
+                m_Generated.Add(symbol.Name);
                 continue;
             }
 
-            if (symbol.TryGetAttribute(attributeType: m_InstantiationAttribute!,
-                                       attributes: out attributes))
+            if (!m_Generated.Contains(symbol.Name) &&
+                symbol.TryGetAttribute(attributeType: m_InstantiationAttribute!,
+                                       attributes: out _))
             {
                 context.AddSource(hintName: $"{symbol.Name}.g.cs",
                                   sourceText: SourceText.From(text: this.GenerateWithInstantiation(symbol),
                                                               encoding: Encoding.UTF8));
+                m_Generated.Add(symbol.Name);
                 continue;
             }
 
-            if (symbol.TryGetAttribute(attributeType: m_ParametersAttribute!,
-                                       attributes: out attributes))
+            if (!m_Generated.Contains(symbol.Name) &&
+                symbol.TryGetAttribute(attributeType: m_ParametersAttribute!,
+                                       attributes: out IEnumerable<AttributeData> attributes))
             {
                 AttributeData attribute = attributes.Single();
 
@@ -406,6 +414,8 @@ partial class SingletonGenerator : ISourceGenerator
                                   sourceText: SourceText.From(text: this.GenerateParameterized(symbol: symbol,
                                                                                                interfaceName: interfaceName),
                                                               encoding: Encoding.UTF8));
+                m_Generated.Add(interfaceName);
+                m_Generated.Add(symbol.Name);
                 continue;
             }
         }
