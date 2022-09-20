@@ -12,7 +12,7 @@
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<RepositoryUrl>https://github.com/Narumikazuchi/Singleton</RepositoryUrl>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<Version>1.0.2-prerelease</Version>
+		<Version>1.0.3-beta</Version>
 		<PackageReleaseNotes></PackageReleaseNotes>
 		<NoPackageAnalysis>true</NoPackageAnalysis>
 		<PackageProjectUrl>https://github.com/Narumikazuchi/Singleton/wiki</PackageProjectUrl>

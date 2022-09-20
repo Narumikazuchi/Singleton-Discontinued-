@@ -19,34 +19,36 @@ public sealed partial class SingletonGenerator
 // Non-Public
 partial class SingletonGenerator
 {
-    private void InjectSources(GeneratorExecutionContext context)
-    {
-        context.AddSource(hintName: "SingletonAttribute.g.cs",
-                          sourceText: m_DefaultAttributeSourceText);
-        context.AddSource(hintName: "SingletonWithParametersAttribute.g.cs",
-                          sourceText: m_ParametersAttributeSourceText);
-        context.AddSource(hintName: "SingletonWithInstantiationAttribute.g.cs",
-                          sourceText: m_InstantiationAttributeSourceText);
-        context.AddSource(hintName: "Singleton.g.cs",
-                          sourceText: m_AbstractClassSourceText);
-    }
-
     private Compilation GetCompilation(GeneratorExecutionContext context)
     {
-        CSharpParseOptions options = (CSharpParseOptions)context.Compilation
-                                                                .SyntaxTrees
-                                                                .First()
-                                                                .Options;
+        CSharpParseOptions options = (CSharpParseOptions)context.Compilation.SyntaxTrees.First()
+                                                                                        .Options;
 
-        Compilation compilation = context.Compilation
-                                         .AddSyntaxTrees(CSharpSyntaxTree.ParseText(text: m_AbstractClassSourceText,
-                                                                                    options: options),
-                                                         CSharpSyntaxTree.ParseText(text: m_DefaultAttributeSourceText,
-                                                                                    options: options),
-                                                         CSharpSyntaxTree.ParseText(text: m_ParametersAttributeSourceText,
-                                                                                    options: options),
-                                                         CSharpSyntaxTree.ParseText(text: m_InstantiationAttributeSourceText,
-                                                                                    options: options));
+        Compilation compilation = context.Compilation;
+
+        INamedTypeSymbol? symbol = compilation.GetTypeByMetadataName("Narumikazuchi.Singletons.Singleton");
+
+        if (symbol is null)
+        {
+            context.AddSource(hintName: "SingletonAttribute.g.cs",
+                              sourceText: m_DefaultAttributeSourceText);
+            context.AddSource(hintName: "SingletonWithParametersAttribute.g.cs",
+                              sourceText: m_ParametersAttributeSourceText);
+            context.AddSource(hintName: "SingletonWithInstantiationAttribute.g.cs",
+                              sourceText: m_InstantiationAttributeSourceText);
+            context.AddSource(hintName: "Singleton.g.cs",
+                              sourceText: m_AbstractClassSourceText);
+
+            compilation = context.Compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(text: m_AbstractClassSourceText,
+                                                                                        options: options),
+                                                             CSharpSyntaxTree.ParseText(text: m_DefaultAttributeSourceText,
+                                                                                        options: options),
+                                                             CSharpSyntaxTree.ParseText(text: m_ParametersAttributeSourceText,
+                                                                                        options: options),
+                                                             CSharpSyntaxTree.ParseText(text: m_InstantiationAttributeSourceText,
+                                                                                        options: options));
+        }
+
         return compilation;
     }
 
@@ -59,8 +61,7 @@ partial class SingletonGenerator
 
     private String GenerateDefault(INamedTypeSymbol symbol)
     {
-        String @namespace = symbol.ContainingNamespace
-                                  .ToDisplayString();
+        String @namespace = symbol.ContainingNamespace.ToDisplayString();
 
         String result = $@"using System;
 
@@ -110,8 +111,7 @@ partial class {symbol.Name} : Narumikazuchi.Singletons.Singleton
     /// <returns></returns>
     private String GenerateWithInstantiation(INamedTypeSymbol symbol)
     {
-        String @namespace = symbol.ContainingNamespace
-                                  .ToDisplayString();
+        String @namespace = symbol.ContainingNamespace.ToDisplayString();
 
         String result = $@"using System;
 
@@ -170,8 +170,7 @@ partial class {symbol.Name} : Narumikazuchi.Singletons.Singleton
     private String GenerateParameterInterface(INamedTypeSymbol symbol,
                                               String interfaceName)
     {
-        String @namespace = symbol.ContainingNamespace
-                                  .ToDisplayString();
+        String @namespace = symbol.ContainingNamespace.ToDisplayString();
 
         String result = $@"namespace {@namespace};
 
@@ -184,8 +183,7 @@ partial interface {interfaceName}
     private String GenerateParameterized(INamedTypeSymbol symbol,
                                          String interfaceName)
     {
-        String @namespace = symbol.ContainingNamespace
-                                  .ToDisplayString();
+        String @namespace = symbol.ContainingNamespace.ToDisplayString();
 
         String result = $@"using System;
 
@@ -353,15 +351,13 @@ partial class SingletonGenerator : ISourceGenerator
             return;
         }
 
-        this.InjectSources(context);
         Compilation compilation = this.GetCompilation(context);
 
         m_DefaultAttribute = compilation.GetTypeByMetadataName("Narumikazuchi.Singletons.SingletonAttribute");
         m_ParametersAttribute = compilation.GetTypeByMetadataName("Narumikazuchi.Singletons.SingletonWithParametersAttribute");
         m_InstantiationAttribute = compilation.GetTypeByMetadataName("Narumikazuchi.Singletons.SingletonWithInstantiationAttribute");
 
-        IEnumerable<INamedTypeSymbol> symbols = receiver.Candidates
-                                                        .Select(x => GetSymbol(compilation, x));
+        IEnumerable<INamedTypeSymbol> symbols = receiver.Candidates.Select(x => GetSymbol(compilation, x));
         foreach (INamedTypeSymbol symbol in symbols)
         {
             if (symbol.TryGetAttribute(attributeType: m_DefaultAttribute!,
@@ -388,15 +384,12 @@ partial class SingletonGenerator : ISourceGenerator
                 AttributeData attribute = attributes.Single();
 
                 String interfaceName = "I" + symbol.Name + "ConstructorParameters";
-                if (attribute.ConstructorArguments
-                             .Any())
+                if (attribute.ConstructorArguments.Any())
                 {
-                    TypedConstant constant = attribute.ConstructorArguments
-                                                      .First();
+                    TypedConstant constant = attribute.ConstructorArguments.First();
                     if (constant.Value is not null)
                     {
-                        String temp = constant.Value
-                                              .ToString();
+                        String temp = constant.Value.ToString();
                         if (!String.IsNullOrWhiteSpace(temp))
                         {
                             interfaceName = temp;
